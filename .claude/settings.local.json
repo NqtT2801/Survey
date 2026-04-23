@@ -19,7 +19,9 @@
       "Bash(npx tsc *)",
       "Bash(echo \"---exit:$?---\")",
       "Bash(DATABASE_URL=\"postgresql://u:p@placeholder/db?sslmode=require\" ADMIN_PASSWORD=\"x\" ADMIN_SESSION_SECRET=\"0000000000000000000000000000000000\" npx next build)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(xargs grep *)",
+      "Bash(npx tsx *)"
     ]
   }
 }
