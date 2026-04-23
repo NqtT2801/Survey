@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card";
 
 function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/admin/questions";
   const [password, setPassword] = useState("");
@@ -35,8 +34,7 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    router.push(next);
-    router.refresh();
+    window.location.assign(next);
   }
 
   return (
