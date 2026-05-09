@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { KNOWLEDGE_RATING_QUESTION } from "@/lib/constants";
 
+const QUESTION_SECONDS = 20;
+
 type Question = {
   id: number;
   phase: 1 | 2;
@@ -42,7 +44,9 @@ export default function SurveyRunner({ sessionId }: { sessionId: number }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const res = await fetch(`/api/survey/${sessionId}/questions`);
+      const res = await fetch(`/api/survey/${sessionId}/questions`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!alive) return;
       if (!res.ok) {
@@ -110,7 +114,12 @@ function ReadyRunner({
   const [everOpened, setEverOpened] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
   const startedAt = useRef<number>(performance.now());
+  const submittedRef = useRef(false);
+  const aliveRef = useRef(true);
+  const choiceRef = useRef<"A" | "B" | "C" | null>(null);
+  const everOpenedRef = useRef(false);
 
   // Final form state
   const [bet, setBet] = useState<"yes" | "no" | null>(null);
@@ -120,37 +129,78 @@ function ReadyRunner({
   const totalQs = questions.length;
   const isDone = index >= totalQs;
 
-  // Reset per-question state whenever question changes.
   useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  // Per-question reset + 20s deadline. Keyed on q?.id so it is correct on
+  // resume and skipped questions, and skipped entirely once we reach the
+  // final form (q is undefined when index === totalQs).
+  useEffect(() => {
+    if (!q) return;
     setChoice(null);
     setOpened(false);
     setEverOpened(false);
     setError(null);
+    setSecondsLeft(QUESTION_SECONDS);
+    choiceRef.current = null;
+    everOpenedRef.current = false;
+    submittedRef.current = false;
     startedAt.current = performance.now();
-  }, [index]);
 
-  async function submitAnswer() {
-    if (!q || !choice) return;
-    setSaving(true);
-    setError(null);
-    const elapsed = Math.round(performance.now() - startedAt.current);
+    const deadline = setTimeout(() => {
+      void submitAnswer({ timedOut: true });
+    }, QUESTION_SECONDS * 1000);
+    const tick = setInterval(() => {
+      setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => {
+      clearTimeout(deadline);
+      clearInterval(tick);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q?.id]);
+
+  async function submitAnswer({
+    timedOut = false,
+  }: { timedOut?: boolean } = {}) {
+    if (submittedRef.current || !q) return;
+    const currentChoice = choiceRef.current;
+    if (!timedOut && !currentChoice) return;
+    submittedRef.current = true;
+    if (aliveRef.current) {
+      setSaving(true);
+      setError(null);
+    }
+    const elapsed = timedOut
+      ? QUESTION_SECONDS * 1000
+      : Math.round(performance.now() - startedAt.current);
     const res = await fetch(`/api/survey/${sessionId}/answer`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         questionId: q.id,
-        participantAnswer: choice,
-        openedBox: everOpened,
+        participantAnswer: currentChoice,
+        openedBox: q.phase === 1 ? true : everOpenedRef.current,
         timeToAnswerMs: elapsed,
       }),
     });
     if (!res.ok) {
-      setError((await res.json()).error ?? "Could not save answer");
-      setSaving(false);
+      submittedRef.current = false;
+      const message = (await res.json().catch(() => ({}))).error ?? "Could not save answer";
+      if (aliveRef.current) {
+        setError(message);
+        setSaving(false);
+      }
       return;
     }
-    setSaving(false);
-    setIndex((i) => i + 1);
+    if (aliveRef.current) {
+      setSaving(false);
+      setIndex((i) => i + 1);
+    }
   }
 
   async function submitFinal() {
@@ -180,9 +230,21 @@ function ReadyRunner({
       {!isDone && q ? (
         <Card>
           <CardHeader>
-            <CardTitle>
-              Phase {q.phase} · Question {q.order} of 10
-            </CardTitle>
+            <div className="flex items-start justify-between gap-4">
+              <CardTitle>
+                Phase {q.phase} · Question {q.order} of 10
+              </CardTitle>
+              <span
+                className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold tabular-nums ${
+                  secondsLeft <= 5
+                    ? "border-destructive text-destructive"
+                    : "text-muted-foreground"
+                }`}
+                aria-live="polite"
+              >
+                Time left: {secondsLeft}s
+              </span>
+            </div>
             <CardDescription className="whitespace-pre-wrap text-base text-foreground">
               {q.text}
             </CardDescription>
@@ -190,7 +252,11 @@ function ReadyRunner({
           <CardContent className="space-y-6">
             <RadioGroup
               value={choice ?? ""}
-              onValueChange={(v) => setChoice(v as "A" | "B" | "C")}
+              onValueChange={(v) => {
+                const picked = v as "A" | "B" | "C";
+                setChoice(picked);
+                choiceRef.current = picked;
+              }}
             >
               {(["A", "B", "C"] as const).map((letter) => {
                 const val =
@@ -219,19 +285,7 @@ function ReadyRunner({
                 <span className="font-semibold">Recommendation:</span>{" "}
                 <span className="font-semibold">{q.recommendation}</span>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const next = !opened;
-                  setOpened(next);
-                  if (next) setEverOpened(true);
-                }}
-              >
-                {opened ? "Hide explanation" : "Open explanation"}
-              </Button>
-              {opened ? (
+              {q.phase === 1 ? (
                 <div className="whitespace-pre-wrap rounded border bg-background p-3 text-sm">
                   {q.explanation || (
                     <span className="text-muted-foreground">
@@ -239,7 +293,34 @@ function ReadyRunner({
                     </span>
                   )}
                 </div>
-              ) : null}
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const next = !opened;
+                      setOpened(next);
+                      if (next) {
+                        setEverOpened(true);
+                        everOpenedRef.current = true;
+                      }
+                    }}
+                  >
+                    {opened ? "Hide explanation" : "Open explanation"}
+                  </Button>
+                  {opened ? (
+                    <div className="whitespace-pre-wrap rounded border bg-background p-3 text-sm">
+                      {q.explanation || (
+                        <span className="text-muted-foreground">
+                          (No explanation provided.)
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
+                </>
+              )}
             </div>
 
             {error ? (
@@ -249,7 +330,7 @@ function ReadyRunner({
             <div className="flex justify-end">
               <Button
                 disabled={!choice || saving}
-                onClick={submitAnswer}
+                onClick={() => void submitAnswer()}
               >
                 {saving
                   ? "Saving…"

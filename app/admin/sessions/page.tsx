@@ -1,5 +1,6 @@
-import { db, schema } from "@/lib/db";
-import { desc } from "drizzle-orm";
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,20 +9,92 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export const dynamic = "force-dynamic";
+type SessionRow = {
+  id: number;
+  group: "Control" | "Treatment";
+  startedAt: string | null;
+  completedAt: string | null;
+  bet: boolean | null;
+  knowledgeRating: number | null;
+};
 
-function fmt(d: Date | null) {
+function fmt(d: string | null) {
   if (!d) return "—";
   return new Date(d).toLocaleString();
 }
 
-export default async function AdminSessionsPage() {
-  const rows = await db
-    .select()
-    .from(schema.sessions)
-    .orderBy(desc(schema.sessions.id));
+export default function AdminSessionsPage() {
+  const [rows, setRows] = useState<SessionRow[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const aliveRef = useRef(true);
 
-  const completed = rows.filter((r) => r.completedAt);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/sessions?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "cache-control": "no-cache" },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `Load failed (${res.status})`);
+      }
+      const data = (await res.json()) as { sessions: SessionRow[] };
+      if (!aliveRef.current) return;
+      setRows(data.sessions);
+    } catch (err) {
+      if (!aliveRef.current) return;
+      setError(err instanceof Error ? err.message : "Load failed");
+    } finally {
+      if (aliveRef.current) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function exportExcel() {
+    setExporting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/export?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "cache-control": "no-cache" },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `Export failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `survey-results-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      if (!aliveRef.current) return;
+      setError(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      if (aliveRef.current) setExporting(false);
+    }
+  }
+
+  const completedCount = rows?.filter((r) => r.completedAt).length ?? 0;
+  const inProgressCount = (rows?.length ?? 0) - completedCount;
 
   return (
     <div className="space-y-6">
@@ -29,16 +102,28 @@ export default async function AdminSessionsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Sessions</h1>
           <p className="text-sm text-muted-foreground">
-            {completed.length} completed · {rows.length - completed.length} in
-            progress
+            {rows
+              ? `${completedCount} completed · ${inProgressCount} in progress`
+              : "Loading…"}
           </p>
         </div>
-        <Button asChild>
-          <a href="/api/admin/export" download>
-            Export Excel
-          </a>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => void refresh()}
+            disabled={loading}
+          >
+            {loading ? "Refreshing…" : "Refresh"}
+          </Button>
+          <Button onClick={() => void exportExcel()} disabled={exporting}>
+            {exporting ? "Exporting…" : "Export Excel"}
+          </Button>
+        </div>
       </div>
+
+      {error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -58,7 +143,16 @@ export default async function AdminSessionsPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 ? (
+                {rows === null ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="p-6 text-center text-muted-foreground"
+                    >
+                      Loading…
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
                   <tr>
                     <td
                       colSpan={6}

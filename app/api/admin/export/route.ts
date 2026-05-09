@@ -15,6 +15,8 @@ export async function GET() {
       "content-type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "content-disposition": `attachment; filename="${filename}"`,
+      "cache-control": "no-store, no-cache, must-revalidate, max-age=0",
+      pragma: "no-cache",
     },
   });
 }

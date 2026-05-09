@@ -71,7 +71,7 @@ export const answers = pgTable(
     questionId: integer("question_id")
       .notNull()
       .references(() => questions.id, { onDelete: "restrict" }),
-    participantAnswer: answerEnum("participant_answer").notNull(),
+    participantAnswer: answerEnum("participant_answer"),
     openedBox: boolean("opened_box").notNull().default(false),
     timeToAnswerMs: integer("time_to_answer_ms").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })

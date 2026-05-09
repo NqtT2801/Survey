@@ -3,6 +3,7 @@ import { db, schema } from "@/lib/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * Returns the 20 questions the participant will answer in order.

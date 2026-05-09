@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const body = z.object({
   questionId: z.number().int().positive(),
-  participantAnswer: answerChoice,
+  participantAnswer: answerChoice.nullable(),
   openedBox: z.boolean(),
   timeToAnswerMs: z.number().int().nonnegative().max(24 * 60 * 60 * 1000),
 });
