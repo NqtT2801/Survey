@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db, schema } from "@/lib/db";
 import { questionInput } from "@/lib/validators";
 
@@ -28,5 +29,6 @@ export async function POST(req: Request) {
     .insert(schema.questions)
     .values(d)
     .returning({ id: schema.questions.id });
+  revalidatePath("/admin/questions");
   return NextResponse.json({ id: row.id });
 }

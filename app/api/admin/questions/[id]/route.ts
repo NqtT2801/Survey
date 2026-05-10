@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { questionInput } from "@/lib/validators";
@@ -38,6 +39,8 @@ export async function PUT(
     .returning({ id: schema.questions.id });
   if (res.length === 0)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  revalidatePath("/admin/questions");
+  revalidatePath(`/admin/questions/${id}`);
   return NextResponse.json({ ok: true });
 }
 
@@ -49,5 +52,6 @@ export async function DELETE(
   if (!Number.isFinite(id))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   await db.delete(schema.questions).where(eq(schema.questions.id, id));
+  revalidatePath("/admin/questions");
   return NextResponse.json({ ok: true });
 }
