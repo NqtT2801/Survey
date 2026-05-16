@@ -10,6 +10,12 @@ const body = z.object({
   knowledgeRating: z.number().int().min(1).max(5),
 });
 
+/**
+ * Records the bet choice + self-rating and resolves the bet (server-side
+ * 50/50 coin flip). Does NOT set completedAt — the survey is finalised by
+ * /complete once bank details are collected. Idempotent: if /finish already
+ * ran, returns the stored outcome without re-rolling the bet.
+ */
 export async function POST(
   req: Request,
   { params }: { params: { sessionId: string } },
@@ -39,14 +45,22 @@ export async function POST(
       { status: 409 },
     );
 
+  // Idempotent: if /finish already ran (knowledgeRating stored), return the
+  // stored outcome so a reload before /complete does not re-roll the bet.
+  if (session.knowledgeRating != null) {
+    return NextResponse.json({ bet: session.bet, betWon: session.betWon });
+  }
+
+  const betWon = parsed.data.bet ? Math.random() < 0.5 : null;
+
   await db
     .update(schema.sessions)
     .set({
       bet: parsed.data.bet,
       knowledgeRating: parsed.data.knowledgeRating,
-      completedAt: new Date(),
+      betWon,
     })
     .where(eq(schema.sessions.id, sessionId));
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ bet: parsed.data.bet, betWon });
 }

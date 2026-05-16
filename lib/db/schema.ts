@@ -58,6 +58,10 @@ export const sessions = pgTable("sessions", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
   bet: boolean("bet"),
   knowledgeRating: integer("knowledge_rating"),
+  betWon: boolean("bet_won"),
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankAccountHolder: text("bank_account_holder"),
 });
 
 /** One row per answered question within a session. */

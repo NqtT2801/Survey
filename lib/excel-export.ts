@@ -10,10 +10,10 @@ import {
  * Build an .xlsx whose layout matches the provided template:
  *
  * Row 1: "Phase X - Question Y" spans 5 columns per question (merged),
- *        then "Bet or not?" + knowledge-rating question at the end.
+ *        then bet, self-rating, bet-result and bank-detail columns at the end.
  * Row 2: per-question sub-headers:
  *        Participant's answer | Recommendation | Right answer | Open box? | Time to answer (s)
- *        For final 2 columns: "Participant's choice?" x2.
+ *        For the bet and self-rating columns: "Participant's choice?".
  * Row 3+: one row per completed session.
  *
  * Left-most columns:
@@ -66,8 +66,8 @@ export async function buildResultsWorkbook(): Promise<Buffer> {
   }
 
   // --- Header rows ---
-  // Columns: A=Participant ID, B=Group, then 5 * 20 = 100 columns for questions, then 2 final columns.
-  // Total columns = 2 + 100 + 2 = 104. Matches template (A..CZ).
+  // Columns: A=Participant ID, B=Group, then 5 * 20 = 100 columns for questions, then 6 final columns.
+  // Total columns = 2 + 100 + 6 = 108.
   const phases = [1, 2] as const;
   const subHeaders = [
     "Participant's answer",
@@ -98,11 +98,19 @@ export async function buildResultsWorkbook(): Promise<Buffer> {
       col = endCol + 1;
     }
   }
-  // Final 2 columns: CY = Bet or not?, CZ = knowledge rating
+  // Final 6 columns: bet, self-rating, bet result, and 3 bank-detail columns.
   const betCol = col;
   const kRatingCol = col + 1;
+  const betResultCol = col + 2;
+  const bankNameCol = col + 3;
+  const bankNumberCol = col + 4;
+  const bankHolderCol = col + 5;
   row1.getCell(betCol).value = "Bet or not?";
   row1.getCell(kRatingCol).value = KNOWLEDGE_RATING_QUESTION;
+  row1.getCell(betResultCol).value = "Bet result";
+  row1.getCell(bankNameCol).value = "Bank name";
+  row1.getCell(bankNumberCol).value = "Bank account number";
+  row1.getCell(bankHolderCol).value = "Bank account holder";
   row2.getCell(betCol).value = "Participant's choice?";
   row2.getCell(kRatingCol).value = "Participant's choice?";
 
@@ -153,12 +161,23 @@ export async function buildResultsWorkbook(): Promise<Buffer> {
     row.getCell(betCol).value =
       s.bet === null || s.bet === undefined ? null : s.bet ? "Yes" : "No";
     row.getCell(kRatingCol).value = s.knowledgeRating ?? null;
+    row.getCell(betResultCol).value =
+      s.bet === true
+        ? s.betWon
+          ? "Won"
+          : "Lost"
+        : s.bet === false
+          ? "Kept 25k"
+          : null;
+    row.getCell(bankNameCol).value = s.bankName ?? null;
+    row.getCell(bankNumberCol).value = s.bankAccountNumber ?? null;
+    row.getCell(bankHolderCol).value = s.bankAccountHolder ?? null;
   }
 
   // Reasonable column widths
   ws.getColumn(1).width = 14;
   ws.getColumn(2).width = 12;
-  for (let i = 3; i <= kRatingCol; i++) {
+  for (let i = 3; i <= bankHolderCol; i++) {
     ws.getColumn(i).width = 18;
   }
 

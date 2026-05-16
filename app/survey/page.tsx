@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { WELCOME_INTRO } from "@/lib/constants";
 
 export default function SurveyLandingPage() {
   const router = useRouter();
@@ -31,14 +32,11 @@ export default function SurveyLandingPage() {
 
   return (
     <main className="container flex min-h-screen items-center justify-center py-12">
-      <Card className="w-full max-w-xl">
+      <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Before you begin</CardTitle>
-          <CardDescription>
-            You will answer 20 multiple-choice questions in two phases of 10.
-            For each question you will see a recommendation and can optionally
-            open an explanation box. Please answer every question in one
-            sitting. Your answer time is recorded.
+          <CardTitle>Chào mừng</CardTitle>
+          <CardDescription className="whitespace-pre-wrap text-base text-foreground">
+            {WELCOME_INTRO}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -51,7 +49,7 @@ export default function SurveyLandingPage() {
             onClick={start}
             disabled={loading}
           >
-            {loading ? "Starting…" : "Start"}
+            {loading ? "Đang bắt đầu…" : "Bắt đầu"}
           </Button>
         </CardContent>
       </Card>

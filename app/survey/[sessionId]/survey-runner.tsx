@@ -10,9 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { KNOWLEDGE_RATING_QUESTION } from "@/lib/constants";
+import {
+  BET_INTRO,
+  BET_OPTION_GAMBLE,
+  BET_OPTION_TAKE,
+  KNOWLEDGE_RATING_LABELS,
+  KNOWLEDGE_RATING_QUESTION,
+  PHASE1_CONTROL_INTRO,
+  PHASE1_TREATMENT_INTRO,
+  PHASE2_INTRO,
+  RESULT_LOSE,
+  RESULT_TAKE,
+  RESULT_WIN,
+} from "@/lib/constants";
 
 const QUESTION_SECONDS = 20;
 
@@ -92,6 +105,7 @@ export default function SurveyRunner({ sessionId }: { sessionId: number }) {
   return (
     <ReadyRunner
       sessionId={sessionId}
+      group={state.group}
       questions={state.questions}
       startIndex={state.startIndex}
     />
@@ -100,10 +114,12 @@ export default function SurveyRunner({ sessionId }: { sessionId: number }) {
 
 function ReadyRunner({
   sessionId,
+  group,
   questions,
   startIndex,
 }: {
   sessionId: number;
+  group: "Control" | "Treatment";
   questions: Question[];
   startIndex: number;
 }) {
@@ -121,13 +137,29 @@ function ReadyRunner({
   const choiceRef = useRef<"A" | "B" | "C" | null>(null);
   const everOpenedRef = useRef(false);
 
-  // Final form state
-  const [bet, setBet] = useState<"yes" | "no" | null>(null);
+  // Phase intro covers — shown once before each phase's questions.
+  const [phase1IntroDone, setPhase1IntroDone] = useState(false);
+  const [phase2IntroDone, setPhase2IntroDone] = useState(false);
+
+  // End-of-survey flow state
+  const [endStep, setEndStep] = useState<"bet" | "rating" | "result">("bet");
+  const [betChoice, setBetChoice] = useState<"take" | "gamble" | null>(null);
   const [knowledgeRating, setKnowledgeRating] = useState<number | null>(null);
+  const [finishResult, setFinishResult] = useState<{
+    bet: boolean;
+    betWon: boolean | null;
+  } | null>(null);
+  const [bankName, setBankName] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [bankAccountHolder, setBankAccountHolder] = useState("");
 
   const q = questions[index];
   const totalQs = questions.length;
   const isDone = index >= totalQs;
+
+  const showPhase1Intro = !isDone && q?.phase === 1 && !phase1IntroDone;
+  const showPhase2Intro = !isDone && q?.phase === 2 && !phase2IntroDone;
+  const showCover = showPhase1Intro || showPhase2Intro;
 
   useEffect(() => {
     aliveRef.current = true;
@@ -138,9 +170,10 @@ function ReadyRunner({
 
   // Per-question reset + 20s deadline. Keyed on q?.id so it is correct on
   // resume and skipped questions, and skipped entirely once we reach the
-  // final form (q is undefined when index === totalQs).
+  // final form (q is undefined when index === totalQs) or while a phase
+  // intro cover is showing (so the timer starts when the question appears).
   useEffect(() => {
-    if (!q) return;
+    if (!q || showCover) return;
     setChoice(null);
     setOpened(false);
     setEverOpened(false);
@@ -162,7 +195,7 @@ function ReadyRunner({
       clearInterval(tick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q?.id]);
+  }, [q?.id, showCover]);
 
   async function submitAnswer({
     timedOut = false,
@@ -203,25 +236,88 @@ function ReadyRunner({
     }
   }
 
-  async function submitFinal() {
-    if (bet === null || knowledgeRating === null) return;
+  async function submitFinish() {
+    if (betChoice === null || knowledgeRating === null) return;
     setSaving(true);
     setError(null);
     const res = await fetch(`/api/survey/${sessionId}/finish`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        bet: bet === "yes",
+        bet: betChoice === "gamble",
         knowledgeRating,
       }),
     });
     if (!res.ok) {
-      setError((await res.json()).error ?? "Could not submit");
+      setError((await res.json().catch(() => ({}))).error ?? "Không thể gửi");
+      setSaving(false);
+      return;
+    }
+    const data = (await res.json()) as { bet: boolean; betWon: boolean | null };
+    setFinishResult({ bet: data.bet, betWon: data.betWon });
+    setSaving(false);
+    setEndStep("result");
+  }
+
+  async function submitComplete() {
+    const eligible =
+      !!finishResult &&
+      (finishResult.bet === false || finishResult.betWon === true);
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/survey/${sessionId}/complete`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(
+        eligible
+          ? {
+              bankName: bankName.trim(),
+              bankAccountNumber: bankAccountNumber.trim(),
+              bankAccountHolder: bankAccountHolder.trim(),
+            }
+          : { bankName: null, bankAccountNumber: null, bankAccountHolder: null },
+      ),
+    });
+    if (!res.ok) {
+      setError((await res.json().catch(() => ({}))).error ?? "Không thể gửi");
       setSaving(false);
       return;
     }
     router.push(`/survey/${sessionId}/thanks`);
   }
+
+  // Phase intro covers — full-screen interstitials before the questions.
+  if (showPhase1Intro) {
+    return (
+      <IntroCover
+        title="Phần 1"
+        body={group === "Control" ? PHASE1_CONTROL_INTRO : PHASE1_TREATMENT_INTRO}
+        buttonLabel="Bắt đầu Phần 1"
+        onContinue={() => setPhase1IntroDone(true)}
+      />
+    );
+  }
+  if (showPhase2Intro) {
+    return (
+      <IntroCover
+        title="Phần 2"
+        body={PHASE2_INTRO}
+        buttonLabel="Bắt đầu Phần 2"
+        onContinue={() => setPhase2IntroDone(true)}
+      />
+    );
+  }
+
+  // Result-step branching (only meaningful once finishResult is set).
+  const betKept = finishResult?.bet === false;
+  const betWon = finishResult?.betWon === true;
+  const payoutEligible = betKept || betWon;
+  const resultMessage = betKept ? RESULT_TAKE : betWon ? RESULT_WIN : RESULT_LOSE;
+  const resultTitle = betKept
+    ? "Hoàn tất"
+    : betWon
+      ? "Chúc mừng!"
+      : "Kết quả đặt cược";
 
   return (
     <main className="container mx-auto flex min-h-screen max-w-2xl flex-col gap-6 py-10">
@@ -341,32 +437,48 @@ function ReadyRunner({
             </div>
           </CardContent>
         </Card>
-      ) : (
+      ) : endStep === "bet" ? (
         <Card>
           <CardHeader>
-            <CardTitle>Two final questions</CardTitle>
+            <CardTitle>Phần thưởng của bạn</CardTitle>
+            <CardDescription className="whitespace-pre-wrap text-base text-foreground">
+              {BET_INTRO}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-3">
-              <Label className="text-base">Bet or not?</Label>
-              <p className="text-sm text-muted-foreground">
-                Would you bet on your answers being correct?
-              </p>
+              <Label className="text-base">Bạn muốn chọn phương án nào?</Label>
               <RadioGroup
-                value={bet ?? ""}
-                onValueChange={(v) => setBet(v as "yes" | "no")}
+                value={betChoice ?? ""}
+                onValueChange={(v) => setBetChoice(v as "take" | "gamble")}
               >
-                <label className="flex cursor-pointer items-center gap-3 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary">
-                  <RadioGroupItem value="yes" id="bet-yes" />
-                  <span className="text-sm">Yes</span>
+                <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary">
+                  <RadioGroupItem value="take" id="bet-take" />
+                  <span className="flex-1 text-sm">{BET_OPTION_TAKE}</span>
                 </label>
-                <label className="flex cursor-pointer items-center gap-3 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary">
-                  <RadioGroupItem value="no" id="bet-no" />
-                  <span className="text-sm">No</span>
+                <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary">
+                  <RadioGroupItem value="gamble" id="bet-gamble" />
+                  <span className="flex-1 text-sm">{BET_OPTION_GAMBLE}</span>
                 </label>
               </RadioGroup>
             </div>
 
+            <div className="flex justify-end">
+              <Button
+                disabled={betChoice === null}
+                onClick={() => setEndStep("rating")}
+              >
+                Tiếp tục
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : endStep === "rating" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Một câu hỏi khảo sát</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="space-y-3">
               <Label className="text-base whitespace-pre-wrap">
                 {KNOWLEDGE_RATING_QUESTION}
@@ -374,17 +486,22 @@ function ReadyRunner({
               <RadioGroup
                 value={knowledgeRating ? String(knowledgeRating) : ""}
                 onValueChange={(v) => setKnowledgeRating(Number(v))}
-                className="grid grid-cols-5 gap-2"
               >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <label
-                    key={n}
-                    className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary"
-                  >
-                    <RadioGroupItem value={String(n)} id={`k-${n}`} />
-                    <span className="text-sm font-semibold">{n}</span>
-                  </label>
-                ))}
+                {KNOWLEDGE_RATING_LABELS.map((label, i) => {
+                  const n = i + 1;
+                  return (
+                    <label
+                      key={n}
+                      className="flex cursor-pointer items-center gap-3 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary"
+                    >
+                      <RadioGroupItem value={String(n)} id={`k-${n}`} />
+                      <span className="flex-1 text-sm">
+                        <span className="mr-2 font-semibold">Mức {n}</span>
+                        {label}
+                      </span>
+                    </label>
+                  );
+                })}
               </RadioGroup>
             </div>
 
@@ -394,15 +511,106 @@ function ReadyRunner({
 
             <div className="flex justify-end">
               <Button
-                disabled={bet === null || knowledgeRating === null || saving}
-                onClick={submitFinal}
+                disabled={knowledgeRating === null || saving}
+                onClick={() => void submitFinish()}
               >
-                {saving ? "Submitting…" : "Submit"}
+                {saving ? "Đang gửi…" : "Tiếp tục"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>{resultTitle}</CardTitle>
+            <CardDescription className="whitespace-pre-wrap text-base text-foreground">
+              {resultMessage}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {payoutEligible ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bank-name">Tên ngân hàng</Label>
+                  <Input
+                    id="bank-name"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    placeholder="Ví dụ: Vietcombank"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-number">Số tài khoản ngân hàng</Label>
+                  <Input
+                    id="bank-number"
+                    value={bankAccountNumber}
+                    onChange={(e) => setBankAccountNumber(e.target.value)}
+                    placeholder="Số tài khoản"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-holder">Tên chủ tài khoản</Label>
+                  <Input
+                    id="bank-holder"
+                    value={bankAccountHolder}
+                    onChange={(e) => setBankAccountHolder(e.target.value)}
+                    placeholder="Họ và tên chủ tài khoản"
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            {error ? (
+              <p className="text-sm text-destructive">{error}</p>
+            ) : null}
+
+            <div className="flex justify-end">
+              <Button
+                disabled={
+                  saving ||
+                  (payoutEligible &&
+                    (!bankName.trim() ||
+                      !bankAccountNumber.trim() ||
+                      !bankAccountHolder.trim()))
+                }
+                onClick={() => void submitComplete()}
+              >
+                {saving ? "Đang gửi…" : "Hoàn tất"}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
+    </main>
+  );
+}
+
+function IntroCover({
+  title,
+  body,
+  buttonLabel,
+  onContinue,
+}: {
+  title: string;
+  body: string;
+  buttonLabel: string;
+  onContinue: () => void;
+}) {
+  return (
+    <main className="container flex min-h-screen items-center justify-center py-12">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription className="whitespace-pre-wrap text-base text-foreground">
+            {body}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button size="lg" className="w-full" onClick={onContinue}>
+            {buttonLabel}
+          </Button>
+        </CardContent>
+      </Card>
     </main>
   );
 }

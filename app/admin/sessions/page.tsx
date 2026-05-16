@@ -16,6 +16,10 @@ type SessionRow = {
   completedAt: string | null;
   bet: boolean | null;
   knowledgeRating: number | null;
+  betWon: boolean | null;
+  bankName: string | null;
+  bankAccountNumber: string | null;
+  bankAccountHolder: string | null;
 };
 
 function fmt(d: string | null) {
@@ -140,13 +144,15 @@ export default function AdminSessionsPage() {
                   <th className="p-3">Completed</th>
                   <th className="p-3">Bet</th>
                   <th className="p-3">Knowledge</th>
+                  <th className="p-3">Bet result</th>
+                  <th className="p-3">Bank account</th>
                 </tr>
               </thead>
               <tbody>
                 {rows === null ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={8}
                       className="p-6 text-center text-muted-foreground"
                     >
                       Loading…
@@ -155,7 +161,7 @@ export default function AdminSessionsPage() {
                 ) : rows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={8}
                       className="p-6 text-center text-muted-foreground"
                     >
                       No sessions yet.
@@ -176,6 +182,30 @@ export default function AdminSessionsPage() {
                             : "No"}
                       </td>
                       <td className="p-3">{r.knowledgeRating ?? "—"}</td>
+                      <td className="p-3">
+                        {r.bet === true
+                          ? r.betWon
+                            ? "Won"
+                            : "Lost"
+                          : r.bet === false
+                            ? "Kept 25k"
+                            : "—"}
+                      </td>
+                      <td className="p-3">
+                        {r.bankAccountNumber ? (
+                          <div className="space-y-0.5">
+                            <div>{r.bankName}</div>
+                            <div className="font-mono">
+                              {r.bankAccountNumber}
+                            </div>
+                            <div className="text-muted-foreground">
+                              {r.bankAccountHolder}
+                            </div>
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
