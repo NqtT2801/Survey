@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { WELCOME_INTRO } from "@/lib/constants";
+import { renderIntroBody } from "@/components/intro-text";
 
 export default function SurveyLandingPage() {
   const router = useRouter();
@@ -34,9 +35,8 @@ export default function SurveyLandingPage() {
     <main className="container flex min-h-screen items-center justify-center py-12">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Chào mừng</CardTitle>
           <CardDescription className="whitespace-pre-wrap text-base text-foreground">
-            {WELCOME_INTRO}
+            {renderIntroBody(WELCOME_INTRO)}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

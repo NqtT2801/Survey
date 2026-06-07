@@ -7,57 +7,58 @@ export type QuestionGroup = "Control" | "Treatment" | "Shared";
 export const REWARD_BASE = 25000;
 export const REWARD_DOUBLED = 50000;
 
-export const WELCOME_INTRO = `Chào mừng bạn tới với một thí nghiệm của tôi.
+export const WELCOME_INTRO = `***Chào mừng**
+Chào mừng bạn tới với một thí nghiệm của tôi – Lê Trần Khôi Nguyên.
+Các bạn cần **lựa chọn đáp án theo yêu cầu của đề bài**. Hãy đọc kỹ yêu cầu đề bài nhé.
+**Bạn làm càng tốt, phần thưởng tiền mặt ở cuối thí nghiệm càng cao.**
+Thí nghiệm bao gồm **2 phần, mỗi phần 10 câu hỏi**. **Mỗi câu hỏi bạn sẽ có tối đa 20 giây** để trả lời, trước khi hệ thống tự động nhảy sang câu kế tiếp.
 
-Trong thí nghiệm này, các bạn sẽ được yêu cầu lựa chọn đáp án theo yêu cầu của đề bài. Hãy đọc kỹ yêu cầu đề bài nhé.
-Bạn lựa chọn càng chính xác ở nhiều câu hỏi, phần thưởng tiền mặt sau khi kết thúc sẽ càng cao.
-Thí nghiệm bao gồm 2 phần, mỗi phần 10 câu hỏi. Mỗi câu hỏi bạn sẽ có tối đa 20 giây để trả lời, trước khi hệ thống tự động nhảy sang câu kế tiếp.
+***CHAT-BOT hỗ trợ**:
+Chúng tôi đã tích hợp vào thí nghiệm một con chat-bot mới xây dựng tên UNICORN-26.
+Con Chat-bot này cũng sẽ trả lời các câu hỏi cùng với bạn.
+**Vì nó là bản dùng thử (demo) đang được tinh chỉnh, nên nó có thể đúng hoặc sai.**
+**Đừng dựa vào nó hoàn toàn.** Hãy phân tích và lựa chọn theo tư duy của bạn.
 
-Chúng tôi đã tích hợp vào hệ thống một con chat-bot đang được xây dựng và kiểm tra năng lực. Nó sẽ khuyến nghị đáp án ở từng câu hỏi cho bạn.
-Vì nó là bản dùng thử đang được tinh chỉnh, nên nó có thể đúng hoặc sai. Bạn có thể tin tưởng lựa chọn theo nó hoặc không.
-
+***Thu thập dữ liệu**
 Phần trả lời của bạn là hoàn toàn ẩn danh. Chúng tôi chỉ thu thập số tài khoản ngân hàng của bạn ở cuối thí nghiệm để thanh toán phần thưởng (nếu có). Mọi thông tin cá nhân khác đều không được thu thập hay lưu trữ.
 
-Mọi thắc mắc nếu có vui lòng liên hệ Khôi Nguyên - 0925269696
-Hoặc email: khoinguyen1234.nk@gmail.com`;
+***Liên hệ**
+Mọi thắc mắc nếu có vui lòng liên hệ:
+Lê Trần Khôi Nguyên - 0925269696
+Địa chỉ: Khoa Kinh tế & Tài chính - Phòng 1514, Học viện Phụ nữ Việt Nam.
+Email: khoinguyen1234.nk@gmail.com
+Facebook: https://www.facebook.com/letrankhoinguyen01/
+Instagram: @nguyen.le.vn`;
 
-export const PHASE1_CONTROL_INTRO = `Trong phần này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. Kết quả của bạn sẽ được dùng để tính phần thưởng tiền mặt ở cuối bài.
-
-Ở mỗi câu, bạn sẽ thấy 3 mệnh đề liên quan đến một chủ đề.
+export const PHASE1_CONTROL_INTRO = `Trong Phần 1 này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. **Bạn càng làm tốt thì phần thưởng tiền mặt càng cao.**
+Ở mỗi câu, bạn sẽ thấy **3 mệnh đề** liên quan đến một chủ đề.
 Trong đó:
-- 1 mệnh đề là ĐÚNG
-- 2 mệnh đề là SAI
+- **1 mệnh đề là ĐÚNG**
+- **2 mệnh đề là SAI**
+Nhiệm vụ của bạn là **CHỌN MỆNH ĐỀ ĐÚNG**.
 
-Nhiệm vụ của bạn là CHỌN MỆNH ĐỀ ĐÚNG.
+***CHAT-BOT Unicorn-26 sẽ hỗ trợ cùng bạn.**
+Bạn có thể tham khảo gợi ý của nó. Nhưng như tôi đã nói, **nó hoàn toàn có thể mắc lỗi.**
+Hãy tư duy và đưa ra lựa chọn của bạn.
 
-Hệ thống gợi ý:
-Trong quá trình làm bài, bạn sẽ thấy một gợi ý từ hệ thống chatbot hỗ trợ. Hệ thống này được thiết kế để phân tích nội dung câu hỏi và đưa ra đề xuất về lựa chọn phù hợp.
+***Thời gian**:
+Giới hạn cho mỗi câu hỏi là 30 giây.
+Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
-Bạn có thể:
-- tham khảo gợi ý này
-- hoặc tự đưa ra quyết định của riêng bạn.
-
-Thời gian:
-Giới hạn cho mỗi câu hỏi là 20 giây. Nếu hết 20 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
-
-export const PHASE1_TREATMENT_INTRO = `Trong phần này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. Kết quả của bạn sẽ được dùng để tính phần thưởng tiền mặt ở cuối bài.
-
-Ở mỗi câu, bạn sẽ thấy 3 mệnh đề liên quan đến một chủ đề.
+export const PHASE1_TREATMENT_INTRO = `Trong Phần 1 này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. **Bạn càng làm tốt thì phần thưởng tiền mặt càng cao.**
+Ở mỗi câu, bạn sẽ thấy **3 mệnh đề** liên quan đến một chủ đề.
 Trong đó:
-- 1 mệnh đề là SAI
-- 2 mệnh đề là ĐÚNG
+- **1 mệnh đề là SAI**
+- **2 mệnh đề là ĐÚNG**
+Nhiệm vụ của bạn là **CHỌN MỆNH ĐỀ SAI**.
 
-Nhiệm vụ của bạn là CHỌN MỆNH ĐỀ SAI.
+***CHAT-BOT Unicorn-26 sẽ hỗ trợ cùng bạn.**
+Bạn có thể tham khảo gợi ý của nó. Nhưng như tôi đã nói, **nó hoàn toàn có thể mắc lỗi.**
+Hãy tư duy và đưa ra lựa chọn của bạn.
 
-Hệ thống gợi ý:
-Trong quá trình làm bài, bạn sẽ thấy một gợi ý từ hệ thống chatbot hỗ trợ. Hệ thống này được thiết kế để phân tích nội dung câu hỏi và đưa ra đề xuất về lựa chọn phù hợp.
-
-Bạn có thể:
-- tham khảo gợi ý này
-- hoặc tự đưa ra quyết định của riêng bạn.
-
-Thời gian:
-Giới hạn cho mỗi câu hỏi là 20 giây. Nếu hết 20 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
+***Thời gian**:
+Giới hạn cho mỗi câu hỏi là 30 giây.
+Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
 export const PHASE2_INTRO = `Trong phần này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. Kết quả của bạn sẽ được dùng để tính phần thưởng tiền mặt ở cuối bài.
 

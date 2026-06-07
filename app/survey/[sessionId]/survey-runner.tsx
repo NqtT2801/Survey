@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { renderIntroBody } from "@/components/intro-text";
 import {
   BET_INTRO,
   BET_OPTION_GAMBLE,
@@ -602,7 +603,7 @@ function IntroCover({
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription className="whitespace-pre-wrap text-base text-foreground">
-            {body}
+            {renderIntroBody(body)}
           </CardDescription>
         </CardHeader>
         <CardContent>
