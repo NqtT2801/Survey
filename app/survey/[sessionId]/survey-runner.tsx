@@ -28,7 +28,7 @@ import {
   RESULT_WIN,
 } from "@/lib/constants";
 
-const QUESTION_SECONDS = 20;
+const QUESTION_SECONDS = 30;
 
 type Question = {
   id: number;
@@ -64,7 +64,7 @@ export default function SurveyRunner({ sessionId }: { sessionId: number }) {
       const data = await res.json();
       if (!alive) return;
       if (!res.ok) {
-        setState({ kind: "error", message: data.error ?? "Load failed" });
+        setState({ kind: "error", message: data.error ?? "Không tải được câu hỏi" });
         return;
       }
       const answered = new Set<number>(data.answeredQuestionIds ?? []);
@@ -86,7 +86,7 @@ export default function SurveyRunner({ sessionId }: { sessionId: number }) {
   if (state.kind === "loading") {
     return (
       <main className="container flex min-h-screen items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading…</p>
+        <p className="text-muted-foreground">Đang tải…</p>
       </main>
     );
   }
@@ -95,7 +95,7 @@ export default function SurveyRunner({ sessionId }: { sessionId: number }) {
       <main className="container flex min-h-screen items-center justify-center py-12">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Can't start</CardTitle>
+            <CardTitle>Không thể bắt đầu</CardTitle>
             <CardDescription>{state.message}</CardDescription>
           </CardHeader>
         </Card>
@@ -169,7 +169,7 @@ function ReadyRunner({
     };
   }, []);
 
-  // Per-question reset + 20s deadline. Keyed on q?.id so it is correct on
+  // Per-question reset + 30s deadline. Keyed on q?.id so it is correct on
   // resume and skipped questions, and skipped entirely once we reach the
   // final form (q is undefined when index === totalQs) or while a phase
   // intro cover is showing (so the timer starts when the question appears).
@@ -224,7 +224,7 @@ function ReadyRunner({
     });
     if (!res.ok) {
       submittedRef.current = false;
-      const message = (await res.json().catch(() => ({}))).error ?? "Could not save answer";
+      const message = (await res.json().catch(() => ({}))).error ?? "Không thể lưu câu trả lời";
       if (aliveRef.current) {
         setError(message);
         setSaving(false);
@@ -329,7 +329,7 @@ function ReadyRunner({
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <CardTitle>
-                Phase {q.phase} · Question {q.order} of 10
+                Phần {q.phase}. Câu hỏi {q.order}/10
               </CardTitle>
               <span
                 className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold tabular-nums ${
@@ -339,9 +339,18 @@ function ReadyRunner({
                 }`}
                 aria-live="polite"
               >
-                Time left: {secondsLeft}s
+                Thời gian còn lại: {secondsLeft} giây
               </span>
             </div>
+            <p className="text-sm font-medium">
+              {renderIntroBody(
+                q.phase === 1
+                  ? group === "Control"
+                    ? "Chọn mệnh đề **ĐÚNG**"
+                    : "Chọn mệnh đề **SAI**"
+                  : "Chọn **đáp án chính xác**",
+              )}
+            </p>
             <CardDescription className="whitespace-pre-wrap text-base text-foreground">
               {q.text}
             </CardDescription>
@@ -378,17 +387,25 @@ function ReadyRunner({
             </RadioGroup>
 
             <div className="rounded-md border bg-muted/30 p-4 space-y-3">
+              <div className="text-sm font-semibold">
+                GỢI Ý CỦA CHAT-BOT UNICORN-26
+              </div>
               <div className="text-sm">
-                <span className="font-semibold">Recommendation:</span>{" "}
+                Đáp án gợi ý:{" "}
                 <span className="font-semibold">{q.recommendation}</span>
               </div>
               {q.phase === 1 ? (
-                <div className="whitespace-pre-wrap rounded border bg-background p-3 text-sm">
-                  {q.explanation || (
-                    <span className="text-muted-foreground">
-                      (No explanation provided.)
-                    </span>
-                  )}
+                <div className="text-sm">
+                  <div className="mb-1 font-medium">
+                    Lý do của CHAT-BOT Unicorn:
+                  </div>
+                  <div className="whitespace-pre-wrap rounded border bg-background p-3">
+                    {q.explanation || (
+                      <span className="text-muted-foreground">
+                        (Chưa có lý do.)
+                      </span>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <>
@@ -405,15 +422,20 @@ function ReadyRunner({
                       }
                     }}
                   >
-                    {opened ? "Hide explanation" : "Open explanation"}
+                    {opened ? "Đóng giải thích" : "Mở giải thích"}
                   </Button>
                   {opened ? (
-                    <div className="whitespace-pre-wrap rounded border bg-background p-3 text-sm">
-                      {q.explanation || (
-                        <span className="text-muted-foreground">
-                          (No explanation provided.)
-                        </span>
-                      )}
+                    <div className="text-sm">
+                      <div className="mb-1 font-medium">
+                        Lý do của CHAT-BOT Unicorn:
+                      </div>
+                      <div className="whitespace-pre-wrap rounded border bg-background p-3">
+                        {q.explanation || (
+                          <span className="text-muted-foreground">
+                            (Chưa có lý do.)
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ) : null}
                 </>
@@ -430,10 +452,10 @@ function ReadyRunner({
                 onClick={() => void submitAnswer()}
               >
                 {saving
-                  ? "Saving…"
+                  ? "Đang lưu…"
                   : index === totalQs - 1
-                    ? "Finish questions"
-                    : "Next"}
+                    ? "Hoàn thành phần câu hỏi"
+                    : "Câu tiếp theo"}
               </Button>
             </div>
           </CardContent>
@@ -443,12 +465,12 @@ function ReadyRunner({
           <CardHeader>
             <CardTitle>Phần thưởng của bạn</CardTitle>
             <CardDescription className="whitespace-pre-wrap text-base text-foreground">
-              {BET_INTRO}
+              {renderIntroBody(BET_INTRO)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-3">
-              <Label className="text-base">Bạn muốn chọn phương án nào?</Label>
+              <Label className="text-base font-semibold">Bạn muốn chọn phương án nào?</Label>
               <RadioGroup
                 value={betChoice ?? ""}
                 onValueChange={(v) => setBetChoice(v as "take" | "gamble")}
@@ -622,7 +644,7 @@ function ProgressHeader({ index, total }: { index: number; total: number }) {
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>
-          Question {Math.min(index + 1, total)} / {total}
+          Câu hỏi {Math.min(index + 1, total)}/{total}
         </span>
         <span>{pct}%</span>
       </div>

@@ -11,7 +11,7 @@ export const WELCOME_INTRO = `***Chào mừng**
 Chào mừng bạn tới với một thí nghiệm của tôi – Lê Trần Khôi Nguyên.
 Các bạn cần **lựa chọn đáp án theo yêu cầu của đề bài**. Hãy đọc kỹ yêu cầu đề bài nhé.
 **Bạn làm càng tốt, phần thưởng tiền mặt ở cuối thí nghiệm càng cao.**
-Thí nghiệm bao gồm **2 phần, mỗi phần 10 câu hỏi**. **Mỗi câu hỏi bạn sẽ có tối đa 20 giây** để trả lời, trước khi hệ thống tự động nhảy sang câu kế tiếp.
+Thí nghiệm bao gồm **2 phần, mỗi phần 10 câu hỏi**. **Mỗi câu hỏi bạn sẽ có tối đa 30 giây** để trả lời, trước khi hệ thống tự động nhảy sang câu kế tiếp.
 
 ***CHAT-BOT hỗ trợ**:
 Chúng tôi đã tích hợp vào thí nghiệm một con chat-bot mới xây dựng tên UNICORN-26.
@@ -60,42 +60,40 @@ Hãy tư duy và đưa ra lựa chọn của bạn.
 Giới hạn cho mỗi câu hỏi là 30 giây.
 Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
-export const PHASE2_INTRO = `Trong phần này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. Kết quả của bạn sẽ được dùng để tính phần thưởng tiền mặt ở cuối bài.
+export const PHASE2_INTRO = `Trong Phần 2 này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. **Bạn càng làm tốt thì phần thưởng tiền mặt càng cao.**
 
+*Yêu cầu
 Ở mỗi câu, bạn sẽ thấy câu hỏi và 3 đáp án để lựa chọn.
+Nhiệm vụ của bạn là **CHỌN ĐÁP ÁN CHÍNH XÁC**.
 
-Nhiệm vụ của bạn là CHỌN ĐÁP ÁN CHÍNH XÁC.
+***CHAT-BOT Unicorn-26 sẽ hỗ trợ cùng bạn.**
+Bạn có thể tham khảo gợi ý của nó. Nhưng như tôi đã nói, **nó hoàn toàn có thể mắc lỗi.**
+Hãy tư duy và đưa ra lựa chọn của bạn.
 
-Hệ thống gợi ý:
-Trong quá trình làm bài, bạn sẽ thấy một gợi ý từ hệ thống chatbot hỗ trợ. Hệ thống này được thiết kế để phân tích nội dung câu hỏi và đưa ra đề xuất về lựa chọn phù hợp.
+***Lưu ý**:
+Bạn phải click chuột vào hộp **“Mở giải thích”** để xem phần giải thích của CHAT-BOT Unicorn xem tại sao nó lại chọn đáp án đó.
 
-Bạn có thể:
-- tham khảo gợi ý này
-- hoặc tự đưa ra quyết định của riêng bạn.
+***Thời gian**:
+Giới hạn cho mỗi câu hỏi là 30 giây.
+Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
-*Lưu ý: bạn phải click chuột vào hộp lập luận để xem được phần lập luận của khuyến nghị.
-
-Thời gian:
-Giới hạn cho mỗi câu hỏi là 20 giây. Nếu hết 20 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
-
-export const BET_INTRO = `Sau khi hoàn thành hai phần của bài nghiên cứu, bạn hiện có phần thưởng là 25.000 đồng.
+export const BET_INTRO = `Chúc mừng bạn. Sau khi hoàn thành, phần thưởng của bạn là 25.000 đồng.
 
 Bây giờ, bạn có thể lựa chọn:
 
-Phương án 1: Nhận ngay 25.000 đồng
+**Phương án 1: Nhận ngay 25.000 đồng**
 Bạn giữ nguyên phần thưởng hiện tại và không có rủi ro.
 
-Phương án 2: Đặt cược phần thưởng
-Bạn sẽ đặt cược dựa trên câu hỏi sau:
-Chatbot được sử dụng trong phần thí nghiệm vừa rồi có lựa chọn đúng hơn một nửa (>50%) số câu hỏi hay không?
-Nếu câu trả lời là Có, phần thưởng của bạn sẽ nhân đôi thành 50.000 đồng.
-Nếu câu trả lời là Không, bạn sẽ không nhận được phần thưởng.`;
+**Phương án 2: Đặt cược phần thưởng để nhân đôi**
+Bạn sẽ đặt cược dựa trên câu hỏi sau: **CHAT-BOT Unicorn-26 có chọn chính xác hơn một nửa (>50%) số câu hỏi hay không?**
+- Nếu câu trả lời là **Có**, phần thưởng của bạn sẽ nhân đôi thành 50.000 đồng.
+- Nếu câu trả lời là **Không**, bạn sẽ không nhận được phần thưởng.`;
 
 export const BET_OPTION_TAKE = "Tôi muốn nhận ngay 25.000 đồng";
 export const BET_OPTION_GAMBLE = "Tôi muốn đặt cược để có cơ hội nhận 50.000 đồng";
 
 export const KNOWLEDGE_RATING_QUESTION =
-  "Nếu không có gợi ý hỗ trợ từ chatbot, bạn đánh giá mình sẽ tự trả lời những câu hỏi vừa xong tốt tới mức nào?";
+  "Nếu không có CHAT-BOT Unicorn-26 hỗ trợ, bạn đánh giá mình sẽ tự trả lời những câu hỏi vừa xong tốt tới mức nào?";
 export const KNOWLEDGE_RATING_LABELS = [
   "Rất kém",
   "Khá kém",
