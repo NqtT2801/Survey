@@ -28,7 +28,7 @@ import {
   RESULT_WIN,
 } from "@/lib/constants";
 
-const QUESTION_SECONDS = 30;
+const QUESTION_SECONDS = 50;
 
 type Question = {
   id: number;
@@ -132,6 +132,7 @@ function ReadyRunner({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
+  const [timedOut, setTimedOut] = useState(false);
   const startedAt = useRef<number>(performance.now());
   const submittedRef = useRef(false);
   const aliveRef = useRef(true);
@@ -169,7 +170,7 @@ function ReadyRunner({
     };
   }, []);
 
-  // Per-question reset + 30s deadline. Keyed on q?.id so it is correct on
+  // Per-question reset + deadline. Keyed on q?.id so it is correct on
   // resume and skipped questions, and skipped entirely once we reach the
   // final form (q is undefined when index === totalQs) or while a phase
   // intro cover is showing (so the timer starts when the question appears).
@@ -180,13 +181,14 @@ function ReadyRunner({
     setEverOpened(false);
     setError(null);
     setSecondsLeft(QUESTION_SECONDS);
+    setTimedOut(false);
     choiceRef.current = null;
     everOpenedRef.current = false;
     submittedRef.current = false;
     startedAt.current = performance.now();
 
     const deadline = setTimeout(() => {
-      void submitAnswer({ timedOut: true });
+      setTimedOut(true);
     }, QUESTION_SECONDS * 1000);
     const tick = setInterval(() => {
       setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
@@ -447,16 +449,25 @@ function ReadyRunner({
             ) : null}
 
             <div className="flex justify-end">
-              <Button
-                disabled={!choice || saving}
-                onClick={() => void submitAnswer()}
-              >
-                {saving
-                  ? "Đang lưu…"
-                  : index === totalQs - 1
-                    ? "Hoàn thành phần câu hỏi"
-                    : "Câu tiếp theo"}
-              </Button>
+              {timedOut ? (
+                <Button
+                  disabled={saving}
+                  onClick={() => void submitAnswer({ timedOut: true })}
+                >
+                  {saving ? "Đang lưu…" : "Câu tiếp"}
+                </Button>
+              ) : (
+                <Button
+                  disabled={!choice || saving}
+                  onClick={() => void submitAnswer()}
+                >
+                  {saving
+                    ? "Đang lưu…"
+                    : index === totalQs - 1
+                      ? "Hoàn thành phần câu hỏi"
+                      : "Câu tiếp theo"}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
