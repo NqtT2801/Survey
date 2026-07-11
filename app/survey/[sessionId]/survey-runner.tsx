@@ -15,9 +15,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { renderIntroBody } from "@/components/intro-text";
 import {
+  AGREEMENT_SCALE_LABELS,
   BET_INTRO,
   BET_OPTION_GAMBLE,
   BET_OPTION_TAKE,
+  CHATBOT_SURVEY_INTRO,
+  CHATBOT_SURVEY_QUESTIONS,
   KNOWLEDGE_RATING_LABELS,
   KNOWLEDGE_RATING_QUESTION,
   PHASE1_CONTROL_INTRO,
@@ -144,8 +147,15 @@ function ReadyRunner({
   const [phase2IntroDone, setPhase2IntroDone] = useState(false);
 
   // End-of-survey flow state
-  const [endStep, setEndStep] = useState<"bet" | "rating" | "result">("bet");
+  const [endStep, setEndStep] = useState<
+    "bet" | "chatbot" | "rating" | "result"
+  >("bet");
   const [betChoice, setBetChoice] = useState<"take" | "gamble" | null>(null);
+  const [chatbotRatings, setChatbotRatings] = useState<(number | null)[]>([
+    null,
+    null,
+    null,
+  ]);
   const [knowledgeRating, setKnowledgeRating] = useState<number | null>(null);
   const [finishResult, setFinishResult] = useState<{
     bet: boolean;
@@ -240,7 +250,12 @@ function ReadyRunner({
   }
 
   async function submitFinish() {
-    if (betChoice === null || knowledgeRating === null) return;
+    if (
+      betChoice === null ||
+      knowledgeRating === null ||
+      chatbotRatings.some((r) => r === null)
+    )
+      return;
     setSaving(true);
     setError(null);
     const res = await fetch(`/api/survey/${sessionId}/finish`, {
@@ -249,6 +264,7 @@ function ReadyRunner({
       body: JSON.stringify({
         bet: betChoice === "gamble",
         knowledgeRating,
+        chatbotRatings,
       }),
     });
     if (!res.ok) {
@@ -500,6 +516,66 @@ function ReadyRunner({
             <div className="flex justify-end">
               <Button
                 disabled={betChoice === null}
+                onClick={() => setEndStep("chatbot")}
+              >
+                Tiếp tục
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : endStep === "chatbot" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Một số câu hỏi khảo sát</CardTitle>
+            <CardDescription className="whitespace-pre-wrap text-base text-foreground">
+              {CHATBOT_SURVEY_INTRO}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
+              {AGREEMENT_SCALE_LABELS.map((label, i) => (
+                <div key={i}>
+                  <span className="font-semibold text-foreground">{i + 1}</span>{" "}
+                  – {label}
+                </div>
+              ))}
+            </div>
+
+            {CHATBOT_SURVEY_QUESTIONS.map((question, qIdx) => (
+              <div key={qIdx} className="space-y-3">
+                <Label className="text-base">
+                  <span className="mr-1 font-semibold">{qIdx + 1}.</span>
+                  {question}
+                </Label>
+                <RadioGroup
+                  className="flex gap-2"
+                  value={
+                    chatbotRatings[qIdx] != null
+                      ? String(chatbotRatings[qIdx])
+                      : ""
+                  }
+                  onValueChange={(v) => {
+                    const next = [...chatbotRatings];
+                    next[qIdx] = Number(v);
+                    setChatbotRatings(next);
+                  }}
+                >
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <label
+                      key={n}
+                      className="flex flex-1 cursor-pointer flex-col items-center gap-1.5 rounded-md border p-2 hover:bg-accent has-[[data-state=checked]]:border-primary"
+                    >
+                      <RadioGroupItem value={String(n)} id={`cb-${qIdx}-${n}`} />
+                      <span className="text-sm font-semibold">{n}</span>
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+            ))}
+
+            <div className="flex justify-end">
+              <Button
+                disabled={chatbotRatings.some((r) => r === null)}
                 onClick={() => setEndStep("rating")}
               >
                 Tiếp tục

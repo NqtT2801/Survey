@@ -102,6 +102,24 @@ export const KNOWLEDGE_RATING_LABELS = [
   "Rất tốt",
 ] as const;
 
+export const CHATBOT_SURVEY_INTRO =
+  "Bạn vui lòng trả lời thêm 3 câu hỏi khảo sát sau đây. Hãy lựa chọn mức độ đồng ý cho từng câu:";
+
+// Chú thích thang điểm (index 0 = mức 1). Dùng chung cho phần chú thích ở đầu trang.
+export const AGREEMENT_SCALE_LABELS = [
+  "Hoàn toàn không đồng ý",
+  "Khá không đồng ý",
+  "Trung lập",
+  "Khá đồng ý",
+  "Hoàn toàn đồng ý",
+] as const;
+
+export const CHATBOT_SURVEY_QUESTIONS = [
+  "Tôi cảm thấy con CHATBOT đang cố thuyết phục tôi.",
+  "Tôi cảm thấy con CHATBOT giúp tôi tránh mắc sai lầm",
+  "Tôi cảm thấy con CHATBOT đứng về phía tôi",
+] as const;
+
 export const RESULT_TAKE = `Bạn đã chọn nhận ngay phần thưởng.
 Phần thưởng của bạn là 25.000 đồng.
 Vui lòng nhập thông tin tài khoản ngân hàng bên dưới. Tiền sẽ được thanh toán trong vòng vài giờ.`;

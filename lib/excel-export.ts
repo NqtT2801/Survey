@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { db, schema } from "@/lib/db";
 import { asc, inArray } from "drizzle-orm";
 import {
+  CHATBOT_SURVEY_QUESTIONS,
   KNOWLEDGE_RATING_QUESTION,
   QUESTIONS_PER_PHASE,
 } from "@/lib/constants";
@@ -10,7 +11,8 @@ import {
  * Build an .xlsx whose layout matches the provided template:
  *
  * Row 1: "Phase X - Question Y" spans 5 columns per question (merged),
- *        then bet, self-rating, bet-result and bank-detail columns at the end.
+ *        then bet, self-rating, 3 chatbot-survey, bet-result and bank-detail
+ *        columns at the end.
  * Row 2: per-question sub-headers:
  *        Participant's answer | Recommendation | Right answer | Open box? | Time to answer (s)
  *        For the bet and self-rating columns: "Participant's choice?".
@@ -66,8 +68,8 @@ export async function buildResultsWorkbook(): Promise<Buffer> {
   }
 
   // --- Header rows ---
-  // Columns: A=Participant ID, B=Group, then 5 * 20 = 100 columns for questions, then 6 final columns.
-  // Total columns = 2 + 100 + 6 = 108.
+  // Columns: A=Participant ID, B=Group, then 5 * 20 = 100 columns for questions, then 9 final columns.
+  // Total columns = 2 + 100 + 9 = 111.
   const phases = [1, 2] as const;
   const subHeaders = [
     "Participant's answer",
@@ -98,21 +100,31 @@ export async function buildResultsWorkbook(): Promise<Buffer> {
       col = endCol + 1;
     }
   }
-  // Final 6 columns: bet, self-rating, bet result, and 3 bank-detail columns.
+  // Final 9 columns: bet, self-rating, 3 chatbot-survey answers, bet result,
+  // and 3 bank-detail columns.
   const betCol = col;
   const kRatingCol = col + 1;
-  const betResultCol = col + 2;
-  const bankNameCol = col + 3;
-  const bankNumberCol = col + 4;
-  const bankHolderCol = col + 5;
+  const chatbot1Col = col + 2;
+  const chatbot2Col = col + 3;
+  const chatbot3Col = col + 4;
+  const betResultCol = col + 5;
+  const bankNameCol = col + 6;
+  const bankNumberCol = col + 7;
+  const bankHolderCol = col + 8;
   row1.getCell(betCol).value = "Bet or not?";
   row1.getCell(kRatingCol).value = KNOWLEDGE_RATING_QUESTION;
+  row1.getCell(chatbot1Col).value = CHATBOT_SURVEY_QUESTIONS[0];
+  row1.getCell(chatbot2Col).value = CHATBOT_SURVEY_QUESTIONS[1];
+  row1.getCell(chatbot3Col).value = CHATBOT_SURVEY_QUESTIONS[2];
   row1.getCell(betResultCol).value = "Bet result";
   row1.getCell(bankNameCol).value = "Bank name";
   row1.getCell(bankNumberCol).value = "Bank account number";
   row1.getCell(bankHolderCol).value = "Bank account holder";
   row2.getCell(betCol).value = "Participant's choice?";
   row2.getCell(kRatingCol).value = "Participant's choice?";
+  row2.getCell(chatbot1Col).value = "Participant's choice?";
+  row2.getCell(chatbot2Col).value = "Participant's choice?";
+  row2.getCell(chatbot3Col).value = "Participant's choice?";
 
   // Style headers
   [row1, row2].forEach((r) => {
@@ -161,6 +173,9 @@ export async function buildResultsWorkbook(): Promise<Buffer> {
     row.getCell(betCol).value =
       s.bet === null || s.bet === undefined ? null : s.bet ? "Yes" : "No";
     row.getCell(kRatingCol).value = s.knowledgeRating ?? null;
+    row.getCell(chatbot1Col).value = s.chatbotPersuade ?? null;
+    row.getCell(chatbot2Col).value = s.chatbotAvoidMistakes ?? null;
+    row.getCell(chatbot3Col).value = s.chatbotOnMySide ?? null;
     row.getCell(betResultCol).value =
       s.bet === true
         ? s.betWon

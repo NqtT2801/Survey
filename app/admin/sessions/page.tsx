@@ -16,6 +16,9 @@ type SessionRow = {
   completedAt: string | null;
   bet: boolean | null;
   knowledgeRating: number | null;
+  chatbotPersuade: number | null;
+  chatbotAvoidMistakes: number | null;
+  chatbotOnMySide: number | null;
   betWon: boolean | null;
   bankName: string | null;
   bankAccountNumber: string | null;
@@ -144,6 +147,7 @@ export default function AdminSessionsPage() {
                   <th className="p-3">Completed</th>
                   <th className="p-3">Bet</th>
                   <th className="p-3">Knowledge</th>
+                  <th className="p-3">Chatbot 1/2/3</th>
                   <th className="p-3">Bet result</th>
                   <th className="p-3">Bank account</th>
                 </tr>
@@ -152,7 +156,7 @@ export default function AdminSessionsPage() {
                 {rows === null ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="p-6 text-center text-muted-foreground"
                     >
                       Loading…
@@ -161,7 +165,7 @@ export default function AdminSessionsPage() {
                 ) : rows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="p-6 text-center text-muted-foreground"
                     >
                       No sessions yet.
@@ -182,6 +186,11 @@ export default function AdminSessionsPage() {
                             : "No"}
                       </td>
                       <td className="p-3">{r.knowledgeRating ?? "—"}</td>
+                      <td className="p-3 tabular-nums">
+                        {r.chatbotPersuade ?? "—"}/
+                        {r.chatbotAvoidMistakes ?? "—"}/
+                        {r.chatbotOnMySide ?? "—"}
+                      </td>
                       <td className="p-3">
                         {r.bet === true
                           ? r.betWon

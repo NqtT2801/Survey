@@ -8,11 +8,12 @@ export const runtime = "nodejs";
 const body = z.object({
   bet: z.boolean(),
   knowledgeRating: z.number().int().min(1).max(5),
+  chatbotRatings: z.array(z.number().int().min(1).max(5)).length(3),
 });
 
 /**
  * Records the bet choice + self-rating and resolves the bet (server-side
- * 50/50 coin flip). Does NOT set completedAt — the survey is finalised by
+ * random draw, 20% win / 80% lose). Does NOT set completedAt — the survey is finalised by
  * /complete once bank details are collected. Idempotent: if /finish already
  * ran, returns the stored outcome without re-rolling the bet.
  */
@@ -51,13 +52,16 @@ export async function POST(
     return NextResponse.json({ bet: session.bet, betWon: session.betWon });
   }
 
-  const betWon = parsed.data.bet ? Math.random() < 0.5 : null;
+  const betWon = parsed.data.bet ? Math.random() < 0.2 : null;
 
   await db
     .update(schema.sessions)
     .set({
       bet: parsed.data.bet,
       knowledgeRating: parsed.data.knowledgeRating,
+      chatbotPersuade: parsed.data.chatbotRatings[0],
+      chatbotAvoidMistakes: parsed.data.chatbotRatings[1],
+      chatbotOnMySide: parsed.data.chatbotRatings[2],
       betWon,
     })
     .where(eq(schema.sessions.id, sessionId));
