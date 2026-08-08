@@ -11,7 +11,7 @@ export const WELCOME_INTRO = `***Chào mừng**
 Chào mừng bạn tới với một thí nghiệm của tôi – Lê Trần Khôi Nguyên.
 Các bạn cần **lựa chọn đáp án theo yêu cầu của đề bài**. Hãy đọc kỹ yêu cầu đề bài nhé.
 **Bạn làm càng tốt, phần thưởng tiền mặt ở cuối thí nghiệm càng cao.**
-Thí nghiệm bao gồm **2 phần, mỗi phần 10 câu hỏi**. **Mỗi câu hỏi bạn sẽ có tối đa 30 giây** để trả lời, trước khi hệ thống tự động nhảy sang câu kế tiếp.
+Thí nghiệm bao gồm **2 phần, mỗi phần 10 câu hỏi**. **Mỗi câu hỏi bạn sẽ có tối đa 50 giây** để trả lời, trước khi hệ thống tự động nhảy sang câu kế tiếp.
 
 ***CHAT-BOT hỗ trợ**:
 Chúng tôi đã tích hợp vào thí nghiệm một con chat-bot mới xây dựng tên UNICORN-26.
@@ -42,8 +42,8 @@ Bạn có thể tham khảo gợi ý của nó. Nhưng như tôi đã nói, **n�
 Hãy tư duy và đưa ra lựa chọn của bạn.
 
 ***Thời gian**:
-Giới hạn cho mỗi câu hỏi là 30 giây.
-Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
+Giới hạn cho mỗi câu hỏi là 50 giây.
+Nếu hết 50 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
 export const PHASE1_TREATMENT_INTRO = `Trong Phần 1 này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. **Bạn càng làm tốt thì phần thưởng tiền mặt càng cao.**
 Ở mỗi câu, bạn sẽ thấy **3 mệnh đề** liên quan đến một chủ đề.
@@ -57,8 +57,8 @@ Bạn có thể tham khảo gợi ý của nó. Nhưng như tôi đã nói, **n�
 Hãy tư duy và đưa ra lựa chọn của bạn.
 
 ***Thời gian**:
-Giới hạn cho mỗi câu hỏi là 30 giây.
-Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
+Giới hạn cho mỗi câu hỏi là 50 giây.
+Nếu hết 50 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
 export const PHASE2_INTRO = `Trong Phần 2 này, bạn sẽ thực hiện một loạt câu hỏi đánh giá thông tin. **Bạn càng làm tốt thì phần thưởng tiền mặt càng cao.**
 
@@ -74,8 +74,8 @@ Hãy tư duy và đưa ra lựa chọn của bạn.
 Bạn phải click chuột vào hộp **“Mở giải thích”** để xem phần giải thích của CHAT-BOT Unicorn xem tại sao nó lại chọn đáp án đó.
 
 ***Thời gian**:
-Giới hạn cho mỗi câu hỏi là 30 giây.
-Nếu hết 30 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
+Giới hạn cho mỗi câu hỏi là 50 giây.
+Nếu hết 50 giây mà bạn chưa trả lời, hệ thống sẽ chuyển sang câu tiếp theo.`;
 
 export const BET_INTRO = `Chúc mừng bạn. Sau khi hoàn thành, phần thưởng của bạn là 25.000 đồng.
 
